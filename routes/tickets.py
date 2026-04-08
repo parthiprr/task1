@@ -1,23 +1,35 @@
 from fastapi import APIRouter
+from sqlalchemy.orm import Session
+from database import get_db
+from models.ticket import Ticket
+from schemas.ticket import TicketCreate
 
 router = APIRouter()
 
-tickets = []
 
-# Create ticket
+
+
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from database import get_db
+from models.ticket import Ticket
+from schemas.ticket import TicketCreate
+
+router = APIRouter()
+
 @router.post("/")
-async def create_ticket(title: str, description: str, user_id: int):
-    ticket = {
-        "id": len(tickets) + 1,
-        "title": title,
-        "description": description,
-        "status": "OPEN",
-        "user_id": user_id
-    }
-    tickets.append(ticket)
-    return ticket
-
-# Get all tickets
+def create_ticket(ticket: TicketCreate, db: Session = Depends(get_db)):
+    new_ticket = Ticket(
+        title=ticket.title,
+        description=ticket.description,
+        user_id=ticket.user_id
+    )
+    db.add(new_ticket)
+    db.commit()
+    db.refresh(new_ticket)
+    return new_ticket
+    
+    
 @router.get("/")
-async def get_tickets():
-    return tickets
+def get_tickets(db: Session = Depends(get_db)):
+    return db.query(Ticket).all()
