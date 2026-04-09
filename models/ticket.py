@@ -13,3 +13,5 @@ class Ticket(Base):
     user_id=Column(Integer,ForeignKey("users.id"))
     
     user=relationship("User",back_populates="tickets")
+    
+# how to do relations in one to one db mapping , one to many db mapping, many to many db mapping. why does primary key doesn't index and what is indexing     

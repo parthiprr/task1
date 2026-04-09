@@ -1,19 +1,9 @@
-from fastapi import APIRouter
-from sqlalchemy.orm import Session
-from database import get_db
-from models.ticket import Ticket
-from schemas.ticket import TicketCreate
-
-router = APIRouter()
-
-
-
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database import get_db
 from models.ticket import Ticket
 from schemas.ticket import TicketCreate
+
 
 router = APIRouter()
 
