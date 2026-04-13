@@ -6,6 +6,12 @@ from database import Base, engine
 import models.user
 import models.ticket
 
+from utils.logger import setup_logger
+from utils.logger import get_logger
+setup_logger()
+
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
@@ -14,6 +20,18 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+logger=get_logger(__name__)
+
+@app.middleware("http")
+async def middleware(request: Request, call_next):
+    logger.info(f"{request.method} request to {request.url.path}")
+
+    response = await call_next(request)  
+
+    logger.info(f"Finished {request.url.path}")
+
+    return response
 
 
 @app.middleware("http")

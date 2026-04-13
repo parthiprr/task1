@@ -7,6 +7,7 @@ from schemas.user import UserCreate
 
 router = APIRouter()
 
+
 @router.post("/")
 async def create_user(user:UserCreate,db:AsyncSession=Depends(get_db)):
     new_user=User(name=user.name)
