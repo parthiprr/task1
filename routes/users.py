@@ -16,6 +16,6 @@ async def create_user(user:UserCreate,db:AsyncSession=Depends(get_db)):
     return new_user
 
 @router.get("/")
-async def get_users(db:AsyncSession=Depends(get_db)):
-    result=await db.execute(select(User))
-    return db.query(User).all()
+async def get_users(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User))
+    return result.scalars().all()
