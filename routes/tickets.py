@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from database import get_db
@@ -6,11 +6,20 @@ from models.ticket import Ticket
 from schemas.ticket import TicketCreate
 from fastapi import BackgroundTasks
 from tasks import process_ticket
+from schemas.ticket import TicketUpdate
+from fastapi import HTTPException
 
 router = APIRouter()
 
+def process_ticket(ticket_id: int):
+    print(f"Background Task Running: Ticket {ticket_id} processed")
+
 @router.post("/")
-async def create_ticket(ticket: TicketCreate, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)):
+async def create_ticket(
+    ticket: TicketCreate,
+    background_tasks: BackgroundTasks, 
+    db: AsyncSession = Depends(get_db)
+):
     new_ticket = Ticket(
         title=ticket.title,
         description=ticket.description,
@@ -29,3 +38,39 @@ async def create_ticket(ticket: TicketCreate, background_tasks: BackgroundTasks,
 async def get_tickets(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Ticket))
     return result.scalars().all()
+
+from fastapi import HTTPException
+
+@router.delete("/{ticket_id}")
+async def delete_ticket(ticket_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Ticket).where(Ticket.id == ticket_id))
+    ticket = result.scalar_one_or_none()
+
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    await db.delete(ticket)
+    await db.commit()
+
+    return {"message": "Ticket deleted successfully"}
+
+
+@router.put("/{ticket_id}")
+async def update_ticket(
+    ticket_id: int,
+    ticket_update: TicketUpdate,
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Ticket).where(Ticket.id == ticket_id))
+    ticket = result.scalar_one_or_none()
+
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    if ticket_update.status is not None:
+        ticket.status = ticket_update.status
+
+    await db.commit()
+    await db.refresh(ticket)
+
+    return ticket
