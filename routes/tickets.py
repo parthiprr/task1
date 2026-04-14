@@ -8,6 +8,8 @@ from fastapi import BackgroundTasks
 from tasks import process_ticket
 from schemas.ticket import TicketUpdate
 from fastapi import HTTPException
+from utils.deps import get_current_user
+from models.user import User
 
 router = APIRouter()
 
@@ -18,25 +20,30 @@ def process_ticket(ticket_id: int):
 async def create_ticket(
     ticket: TicketCreate,
     background_tasks: BackgroundTasks, 
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     new_ticket = Ticket(
         title=ticket.title,
         description=ticket.description,
-        user_id=ticket.user_id
+        user_id=current_user.id
     )
     db.add(new_ticket)
     await db.commit()
     await db.refresh(new_ticket)
-    
     background_tasks.add_task(process_ticket, new_ticket.id)
     
     return new_ticket
     
     
 @router.get("/")
-async def get_tickets(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Ticket))
+async def get_tickets(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    result = await db.execute(
+        select(Ticket).where(Ticket.user_id == current_user.id)
+    )
     return result.scalars().all()
 
 from fastapi import HTTPException
