@@ -10,6 +10,8 @@ from schemas.ticket import TicketUpdate
 from fastapi import HTTPException
 from utils.deps import get_current_user
 from models.user import User
+from utils.deps import require_admin
+
 
 router = APIRouter()
 
@@ -49,7 +51,10 @@ async def get_tickets(
 from fastapi import HTTPException
 
 @router.delete("/{ticket_id}")
-async def delete_ticket(ticket_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_ticket(
+    ticket_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_admin)):
     result = await db.execute(select(Ticket).where(Ticket.id == ticket_id))
     ticket = result.scalar_one_or_none()
 
@@ -66,8 +71,9 @@ async def delete_ticket(ticket_id: int, db: AsyncSession = Depends(get_db)):
 async def update_ticket(
     ticket_id: int,
     ticket_update: TicketUpdate,
-    db: AsyncSession = Depends(get_db)
-):
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_admin)
+    ):
     result = await db.execute(select(Ticket).where(Ticket.id == ticket_id))
     ticket = result.scalar_one_or_none()
 

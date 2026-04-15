@@ -4,7 +4,6 @@ from sqlalchemy.orm import sessionmaker
 from database import Base, get_db
 from main import app
 
-# Use SQLite instead of Postgres
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 engine = create_async_engine(TEST_DATABASE_URL, echo=False)
@@ -14,7 +13,7 @@ TestingSessionLocal = sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
 )
-
+#prepare database
 @pytest.fixture(scope="session", autouse=True)
 async def prepare_database():
     async with engine.begin() as conn:

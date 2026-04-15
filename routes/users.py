@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from database import get_db
 from models.user import User
+
 from schemas.user import UserCreate
 from utils.auth import hash_password,verify_password,create_access_token
 from schemas.user import UserLogin
@@ -16,7 +17,8 @@ router = APIRouter()
 async def create_user(user:UserCreate,db:AsyncSession=Depends(get_db)):
     new_user=User(
         name=user.name,
-        password=hash_password(user.password)
+        password=hash_password(user.password),
+        role=user.role
     )
     db.add(new_user)
     await db.commit()
