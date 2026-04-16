@@ -9,6 +9,8 @@ from utils.auth import hash_password,verify_password,create_access_token
 from schemas.user import UserLogin
 from fastapi.security import OAuth2PasswordRequestForm
 
+from app.messaging.producer import publish_message
+
 
 router = APIRouter()
 
@@ -23,6 +25,11 @@ async def create_user(user:UserCreate,db:AsyncSession=Depends(get_db)):
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
+    
+    publish_message({
+    "type": "user_registered",
+    "user": user.name
+})
     return new_user
 
 
