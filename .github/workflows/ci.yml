@@ -40,8 +40,20 @@ jobs:
 
     - name: Lint
       run: flake8 .
+    
+    - name: Wait for PostgreSQL
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+        until pg_isready -h postgres -p 5432; do
+          echo "Waiting for postgres..."
+          sleep 2
+        done
 
     - name: Run Tests
+      env:
+        DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/test_db
+        RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
       run: pytest --cov=app
 
   docker:
