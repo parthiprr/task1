@@ -6,8 +6,23 @@ on:
   pull_request:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - 5672:5672
 
     steps:
     - name: Checkout code
@@ -21,14 +36,21 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-        pip install flake8 pytest
+        pip install flake8 pytest pytest-cov
 
     - name: Lint
       run: flake8 .
 
-    - name: Test
-      run: pytest
+    - name: Run Tests
+      run: pytest --cov=app
 
-    - name: Build Docker
-      run: docker build -t fastapi .
-      
+  docker:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build Docker Image
+      run: docker build -t fastapi-ticketing .
