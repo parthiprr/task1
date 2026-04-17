@@ -1,13 +1,8 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-#DATABASE_URL = "postgresql+asyncpg://postgres:postgres@host.docker.internal:5432/postgres"
+DATABASE_URL = "postgresql+asyncpg://postgres:postgres@host.docker.internal:5432/postgres"
 import os
-
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/test_db"
-)
 
 Base = declarative_base()
 
