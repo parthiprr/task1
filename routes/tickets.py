@@ -25,6 +25,10 @@ async def create_ticket(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    
+    if current_user.role == "admin":
+        raise HTTPException(status_code=403, detail="Admins are not allowed to create tickets")
+    
     new_ticket = Ticket(
         title=ticket.title,
         description=ticket.description,
@@ -43,9 +47,13 @@ async def get_tickets(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    result = await db.execute(
-        select(Ticket).where(Ticket.user_id == current_user.id)
-    )
+    if current_user.role == "admin":
+        result = await db.execute(select(Ticket))
+    else:
+        result = await db.execute(
+            select(Ticket).where(Ticket.user_id == current_user.id)
+        )
+
     return result.scalars().all()
 
 from fastapi import HTTPException
